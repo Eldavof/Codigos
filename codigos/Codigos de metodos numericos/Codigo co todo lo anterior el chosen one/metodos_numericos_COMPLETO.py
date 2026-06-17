@@ -473,20 +473,26 @@ def lagrange():
         print(f"\n--- 3. EVALUACIÓN EN x = {xp} ---")
         print(f"f_{N}({xp}) = {resultado:.4f}")
 
-# ── 12. Integración Numérica (Trapecio, Simpson 1/3, Romberg) ─────
-def _trapecio_num(f_callable, a, b, n):
-    """Trapecio múltiple — usado también por Romberg."""
-    h = (b - a) / n
-    suma = f_callable(a) + f_callable(b)
-    for i in range(1, n):
-        suma += 2 * f_callable(a + i * h)
-    return (b - a) * suma / (2 * n)
+# ╔══════════════════════════════════════════════════════════════════╗
+# ║  12. INTEGRACIÓN NUMÉRICA                                         ║
+# ║      Trapecio · Simpson 1/3 · Simpson 3/8 · Romberg               ║
+# ║                                                                    ║
+# ║  Cada método es 100% AUTOCONTENIDO: su propio cálculo vive         ║
+# ║  íntegramente dentro de su función (sin reusar el cálculo de       ║
+# ║  otro método). Solo se comparten utilidades genéricas de E/S       ║
+# ║  (pedir_float, pedir_entero, imprimir_tabla, limpiar, pausa).      ║
+# ╚══════════════════════════════════════════════════════════════════╝
 
+# ────────────────────────────────────────────────────────────────────
+#  12.1  REGLA DEL TRAPECIO  (Aplicación Múltiple)
+# ────────────────────────────────────────────────────────────────────
 def integracion_trapecio():
     limpiar()
-    print("∫  REGLA DEL TRAPECIO  (Aplicación Múltiple)")
-    print("-" * 50)
+    print("┌──────────────────────────────────────────────────┐")
+    print("│   ∫   REGLA DEL TRAPECIO  (Aplicación Múltiple)   │")
+    print("└──────────────────────────────────────────────────┘")
     print("Fórmula: I ≈ (b-a)/(2n) · [f(x0) + 2f(x1) + ... + 2f(x_{n-1}) + f(xn)]\n")
+
     expr_str = input("Ingresa f(x) [ej: exp(x**2)]: ").strip()
     f_sym = sympify(expr_str)
     f_num = lambda val: float(f_sym.subs(x, val))
@@ -494,6 +500,7 @@ def integracion_trapecio():
     b = pedir_float("  Límite superior b: ")
     n = pedir_entero("  Número de segmentos n: ")
 
+    # ───── CÁLCULO DEL MÉTODO DEL TRAPECIO ─────
     h = (b - a) / n
     encabezados = ["i", "xi", "f(xi)", "Coef.", "Término"]
     filas = []
@@ -503,13 +510,15 @@ def integracion_trapecio():
         xi = a + i * h
         fxi = f_num(xi)
         if i == 0 or i == n:
-            coef, term = 1, fxi
+            coef, term = 1, fxi          # extremos: coeficiente 1
         else:
-            coef, term = 2, 2 * fxi
+            coef, term = 2, 2 * fxi      # puntos interiores: coeficiente 2
         suma += term
         filas.append([i, f"{xi:.6f}", f"{fxi:.6f}", coef, f"{term:.6f}"])
 
     resultado = (b - a) * suma / (2 * n)
+    # ───── FIN DEL CÁLCULO ─────
+
     imprimir_tabla(encabezados, filas)
     print(f"\n  h = (b - a)/n = ({b} - {a})/{n} = {h:.6f}")
     print(f"\n  I ≈ ({b-a})/(2·{n}) · {suma:.6f}")
@@ -518,12 +527,18 @@ def integracion_trapecio():
     print(f"  ╚══════════════════════════╝")
     pausa()
 
+
+# ────────────────────────────────────────────────────────────────────
+#  12.2  REGLA DE SIMPSON 1/3  (Aplicación Múltiple)
+# ────────────────────────────────────────────────────────────────────
 def integracion_simpson13():
     limpiar()
-    print("∫  REGLA DE SIMPSON 1/3  (Aplicación Múltiple)")
-    print("-" * 50)
+    print("┌──────────────────────────────────────────────────┐")
+    print("│   ∫   REGLA DE SIMPSON 1/3  (Aplicación Múltiple) │")
+    print("└──────────────────────────────────────────────────┘")
     print("Condición: n debe ser NÚMERO PAR")
     print("Fórmula: I ≈ (b-a)/(3n) · [f(x0) + 4f(x1) + 2f(x2) + 4f(x3) + ... + f(xn)]\n")
+
     expr_str = input("Ingresa f(x) [ej: exp(x**2)]: ").strip()
     f_sym = sympify(expr_str)
     f_num = lambda val: float(f_sym.subs(x, val))
@@ -536,6 +551,7 @@ def integracion_simpson13():
         n += 1
         print(f"  → Usando n = {n}")
 
+    # ───── CÁLCULO DEL MÉTODO DE SIMPSON 1/3 ─────
     h = (b - a) / n
     encabezados = ["i", "xi", "f(xi)", "Coef.", "Término"]
     filas = []
@@ -545,15 +561,17 @@ def integracion_simpson13():
         xi = a + i * h
         fxi = f_num(xi)
         if i == 0 or i == n:
-            coef, term = 1, fxi
+            coef, term = 1, fxi          # extremos: coeficiente 1
         elif i % 2 != 0:
-            coef, term = 4, 4 * fxi
+            coef, term = 4, 4 * fxi      # índices impares: coeficiente 4
         else:
-            coef, term = 2, 2 * fxi
+            coef, term = 2, 2 * fxi      # índices pares interiores: coeficiente 2
         suma += term
         filas.append([i, f"{xi:.6f}", f"{fxi:.6f}", coef, f"{term:.6f}"])
 
     resultado = (b - a) * suma / (3 * n)
+    # ───── FIN DEL CÁLCULO ─────
+
     imprimir_tabla(encabezados, filas)
     print(f"\n  h = (b - a)/n = ({b} - {a})/{n} = {h:.6f}")
     print(f"\n  I ≈ ({b-a})/(3·{n}) · {suma:.6f}")
@@ -562,12 +580,72 @@ def integracion_simpson13():
     print(f"  ╚══════════════════════════╝")
     pausa()
 
+
+# ────────────────────────────────────────────────────────────────────
+#  12.3  REGLA DE SIMPSON 3/8  (Aplicación Múltiple)
+# ────────────────────────────────────────────────────────────────────
+def integracion_simpson38():
+    limpiar()
+    print("┌──────────────────────────────────────────────────┐")
+    print("│   ∫   REGLA DE SIMPSON 3/8  (Aplicación Múltiple) │")
+    print("└──────────────────────────────────────────────────┘")
+    print("Condición: n debe ser MÚLTIPLO DE 3")
+    print("Fórmula: I ≈ (3h/8) · [f(x0) + 3f(x1) + 3f(x2) + 2f(x3) + 3f(x4) + ... + f(xn)]\n")
+
+    expr_str = input("Ingresa f(x) [ej: exp(x**2)]: ").strip()
+    f_sym = sympify(expr_str)
+    f_num = lambda val: float(f_sym.subs(x, val))
+    a = pedir_float("  Límite inferior a: ")
+    b = pedir_float("  Límite superior b: ")
+    n = pedir_entero("  Número de segmentos n (múltiplo de 3): ")
+
+    if n % 3 != 0:
+        n_ajustado = n + (3 - n % 3)
+        print(f"\n  ⚠️  n debe ser múltiplo de 3. Ajustando n={n} → n={n_ajustado}...")
+        n = n_ajustado
+        print(f"  → Usando n = {n}")
+
+    # ───── CÁLCULO DEL MÉTODO DE SIMPSON 3/8 ─────
+    h = (b - a) / n
+    encabezados = ["i", "xi", "f(xi)", "Coef.", "Término"]
+    filas = []
+
+    suma = 0.0
+    for i in range(n + 1):
+        xi = a + i * h
+        fxi = f_num(xi)
+        if i == 0 or i == n:
+            coef, term = 1, fxi          # extremos: coeficiente 1
+        elif i % 3 == 0:
+            coef, term = 2, 2 * fxi      # múltiplos de 3 (interiores): coeficiente 2
+        else:
+            coef, term = 3, 3 * fxi      # el resto: coeficiente 3
+        suma += term
+        filas.append([i, f"{xi:.6f}", f"{fxi:.6f}", coef, f"{term:.6f}"])
+
+    resultado = (3 * h / 8) * suma
+    # ───── FIN DEL CÁLCULO ─────
+
+    imprimir_tabla(encabezados, filas)
+    print(f"\n  h = (b - a)/n = ({b} - {a})/{n} = {h:.6f}")
+    print(f"\n  I ≈ (3·{h:.6f}/8) · {suma:.6f}")
+    print(f"\n  ╔══════════════════════════╗")
+    print(f"  ║  Resultado: {resultado:.6f}  ║")
+    print(f"  ╚══════════════════════════╝")
+    pausa()
+
+
+# ────────────────────────────────────────────────────────────────────
+#  12.4  INTEGRACIÓN DE ROMBERG  (Trapecio + Extrapolación Richardson)
+# ────────────────────────────────────────────────────────────────────
 def integracion_romberg():
     limpiar()
-    print("∫  INTEGRACIÓN DE ROMBERG")
-    print("-" * 50)
+    print("┌──────────────────────────────────────────────────┐")
+    print("│   ∫   INTEGRACIÓN DE ROMBERG                      │")
+    print("└──────────────────────────────────────────────────┘")
     print("Combina el método del Trapecio con la Extrapolación de Richardson.")
     print("Cada columna extra aumenta el orden de precisión.\n")
+
     expr_str = input("Ingresa f(x) [ej: exp(x**2)]: ").strip()
     f_sym = sympify(expr_str)
     f_num = lambda val: float(f_sym.subs(x, val))
@@ -575,13 +653,22 @@ def integracion_romberg():
     b = pedir_float("  Límite superior b: ")
     niveles = pedir_entero("  Número de niveles (ej. 4): ", 2, 10)
 
-    # Construir matriz de Romberg
+    # ───── CÁLCULO DEL MÉTODO DE ROMBERG ─────
+    # Matriz triangular donde se guardan los resultados.
     I = [[0.0] * niveles for _ in range(niveles)]
 
-    print("\n── Paso 1: columna Trapecio ─────────────────────")
+    print("\n── Paso 1: columna Trapecio (cálculo propio de Romberg) ──")
     for k in range(niveles):
         n_segs = 2 ** k
-        I[k][0] = _trapecio_num(f_num, a, b, n_segs)
+
+        # Trapecio múltiple calculado aquí mismo, dentro de Romberg,
+        # sin depender de la función de la sección 12.1.
+        h_k = (b - a) / n_segs
+        suma_trap = f_num(a) + f_num(b)
+        for i in range(1, n_segs):
+            suma_trap += 2 * f_num(a + i * h_k)
+        I[k][0] = (b - a) * suma_trap / (2 * n_segs)
+
         print(f"  I[{k}][0] — n={n_segs:>4} segmentos → {I[k][0]:.8f}")
 
     print("\n── Paso 2: Extrapolación de Richardson ──────────")
@@ -589,6 +676,9 @@ def integracion_romberg():
         for j in range(1, k + 1):
             I[k][j] = (4**j * I[k][j-1] - I[k-1][j-1]) / (4**j - 1)
             print(f"  I[{k}][{j}] = (4^{j}·{I[k][j-1]:.6f} - {I[k-1][j-1]:.6f}) / (4^{j}-1) = {I[k][j]:.8f}")
+
+    mejor = I[niveles-1][niveles-1]
+    # ───── FIN DEL CÁLCULO ─────
 
     # Imprimir la tabla triangular completa
     print("\n── Matriz de Romberg ────────────────────────────")
@@ -602,7 +692,6 @@ def integracion_romberg():
         filas_tabla.append(fila)
     imprimir_tabla(encabezados, filas_tabla)
 
-    mejor = I[niveles-1][niveles-1]
     print(f"\n  ╔══════════════════════════════════════╗")
     print(f"  ║  Mejor estimación: {mejor:.8f}  ║")
     print(f"  ╚══════════════════════════════════════╝")
@@ -2068,14 +2157,16 @@ def menu_tercer_parcial():
         print()
         print("  [1]  Regla del Trapecio     (aplicación múltiple)")
         print("  [2]  Regla de Simpson 1/3   (aplicación múltiple)")
-        print("  [3]  Integración de Romberg (extrapolación Richardson)")
+        print("  [3]  Regla de Simpson 3/8   (aplicación múltiple)")
+        print("  [4]  Integración de Romberg (extrapolación Richardson)")
         print("  [0]  ← Volver al menú principal")
         print()
         linea()
-        op = pedir_opcion(["0", "1", "2", "3"])
+        op = pedir_opcion(["0", "1", "2", "3", "4"])
         if   op == "1": integracion_trapecio()
         elif op == "2": integracion_simpson13()
-        elif op == "3": integracion_romberg()
+        elif op == "3": integracion_simpson38()
+        elif op == "4": integracion_romberg()
         elif op == "0": break
 
 
@@ -2098,7 +2189,7 @@ def menu_principal():
         print("║                          Eliminación Gaussiana...)           ║")
         print("║                                                              ║")
         print("║   [3]  📙  3er PARCIAL  (Trapecio, Simpson 1/3,             ║")
-        print("║                          Romberg...)                         ║")
+        print("║                          Simpson 3/8, Romberg...)            ║")
         print("║                                                              ║")
         print("║   [0]  🚪  Salir                                            ║")
         print("║                                                              ║")
