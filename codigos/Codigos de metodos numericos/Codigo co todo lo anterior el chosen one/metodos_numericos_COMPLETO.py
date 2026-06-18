@@ -7,9 +7,10 @@
 
 import math
 import sys
-import re
 
 from sympy import *
+import re   # se reimporta DESPUÉS de sympy para que re.match()/re.finditer() sean
+            # el módulo estándar y no la función re() de sympy (parte real)
 
 try:
     from tabulate import tabulate
