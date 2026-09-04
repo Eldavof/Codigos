@@ -22,3 +22,5 @@ public class Main {
         System.out.println("Fin del main");
     }
 }
+
+//agregar quitar, ver, modificar, ver toda la info
