@@ -23,8 +23,8 @@ public class Tarea extends Thread {
             try{
                 sleep(vel);
             } catch (InterruptedException e){
-                
-                System.out.println("Error en la tarea porque no se que pdo");
+
+                System.out.println("Error en la tarea porque no se que ");
             }
         }
         
